@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Dating</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #1a1a1a;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            padding: 20px;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00d4aa;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #00d4aa;
+            color: #000;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #00b894;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .card {
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 10px 0;
+            border: 1px solid #333;
+        }
+
+        .profile-card {
+            background: linear-gradient(135deg, #00d4aa, #00a085);
+            color: #000;
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .profile-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #00d4aa;
+        }
+
+        .profile-photo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .profile-age {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .profile-field {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .profile-slogan {
+            font-size: 14px;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn.pass {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .control-btn.like {
+            background: #00d4aa;
+            color: #000;
+        }
+
+        .control-btn.super {
+            background: #f39c12;
+            color: #000;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .filter-btn {
+            flex: 1;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #00d4aa;
+            color: #000;
+        }
+
+        .match-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .match-content {
+            text-align: center;
+            background: #2a2a2a;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 300px;
+        }
+
+        .match-title {
+            font-size: 32px;
+            color: #00d4aa;
+            margin-bottom: 20px;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+        }
+
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 80%;
+        }
+
+        .message.sent {
+            background: #00d4aa;
+            color: #000;
+            margin-left: auto;
+        }
+
+        .message.received {
+            background: #333;
+            color: #fff;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #333;
+            border-radius: 25px;
+            background: #2a2a2a;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .chat-input button {
+            padding: 12px 20px;
+            background: #00d4aa;
+            color: #000;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: #2a2a2a;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .age-gate {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .age-gate h2 {
+            color: #00d4aa;
+            margin-bottom: 20px;
+        }
+
+        .characters-panel {
+            background: #2a2a2a;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .character-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .character-item:last-child {
+            border-bottom: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 400px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Age Gate -->
+        <div id="ageGate" class="screen">
+            <div class="age-gate">
+                <h2>🔬 Science Dating</h2>
+                <p>Вам должно быть 18+ лет для использования приложения</p>
+                <button class="btn" onclick="confirmAge()">Мне есть 18 лет</button>
+                <button class="btn btn-secondary" onclick="window.close()">Выход</button>
+            </div>
+        </div>
+
+        <!-- Landing Screen -->
+        <div id="landing" class="screen">
+            <div class="header">
+                <div class="logo">🔬 Science Dating</div>
+                <div class="subtitle">Найди свою научную половинку</div>
+            </div>
+            
+            <div class="card">
+                <button class="btn" onclick="startDemo()">🚀 Быстрый демо-режим</button>
+                <button class="btn btn-secondary" onclick="showScreen('profile')">👤 Регистрация</button>
+                <button class="btn btn-secondary" onclick="showScreen('characters')">🎭 Панель персонажей</button>
+                <button class="btn btn-danger" onclick="resetDemo()">🔄 Сбросить демо</button>
+            </div>
+        </div>
+
+        <!-- Swipe Screen -->
+        <div id="swipe" class="screen">
+            <div class="header">
+                <div class="logo">🔬 Science Dating</div>
+                <div class="subtitle">Найди свою научную половинку</div>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" onclick="setFilter('all')">Все</button>
+                <button class="filter-btn" onclick="setFilter('female')">Девушки</button>
+                <button class="filter-btn" onclick="setFilter('male')">Парни</button>
+            </div>
+
+            <div id="profileCard" class="profile-card">
+                <!-- Profile content will be loaded here -->
+            </div>
+
+            <div class="controls">
+                <button class="control-btn pass" onclick="swipeProfile('pass')">✖</button>
+                <button class="control-btn like" onclick="swipeProfile('like')">❤</button>
+                <button class="control-btn super" onclick="swipeProfile('super')">★</button>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="showScreen('landing')">← Назад</button>
+            </div>
+        </div>
+
+        <!-- Match Overlay -->
+        <div id="matchOverlay" class="match-overlay">
+            <div class="match-content">
+                <div class="match-title">It's a Match! 🎉</div>
+                <p>Вы понравились друг другу!</p>
+                <button class="btn" onclick="openChat()">💬 Открыть чат</button>
+                <button class="btn btn-secondary" onclick="closeMatch()">Продолжить поиск</button>
+            </div>
+        </div>
+
+        <!-- Chat Screen -->
+        <div id="chat" class="screen">
+            <div class="header">
+                <div class="logo">💬 Чат</div>
+                <div class="subtitle">Общайтесь с вашим матчем</div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="messageInput" placeholder="Введите сообщение...">
+                    <button onclick="sendMessage()">Отправить</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="showScreen('swipe')">← Назад к поиску</button>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile" class="screen">
+            <div class="header">
+                <div class="logo">👤 Мой профиль</div>
+            </div>
+
+            <div class="card">
+                <div class="form-group">
+                    <label>Имя:</label>
+                    <input type="text" id="profileName" placeholder="Введите ваше имя">
+                </div>
+                <div class="form-group">
+                    <label>Возраст:</label>
+                    <input type="number" id="profileAge" placeholder="Введите возраст" min="18" max="100">
+                </div>
+                <div class="form-group">
+                    <label>Пол:</label>
+                    <select id="profileGender">
+                        <option value="male">Мужской</option>
+                        <option value="female">Женский</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Сфера деятельности:</label>
+                    <input type="text" id="profileField" placeholder="Например: Физика, Химия, Биология...">
+                </div>
+                <div class="form-group">
+                    <label>Слоган:</label>
+                    <textarea id="profileSlogan" placeholder="Кратко о себе..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Фото профиля:</label>
+                    <input type="file" id="profilePhoto" accept="image/*" onchange="handlePhotoUpload(event)">
+                </div>
+                <button class="btn" onclick="saveProfile()">💾 Сохранить профиль</button>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="showScreen('landing')">← Назад</button>
+            </div>
+        </div>
+
+        <!-- Characters Panel -->
+        <div id="characters" class="screen">
+            <div class="header">
+                <div class="logo">🎭 Панель персонажей</div>
+                <div class="subtitle">Управление демо-данными</div>
+            </div>
+
+            <div class="characters-panel">
+                <div class="character-item">
+                    <span>Количество персонажей: <span id="charCount">0</span></span>
+                    <button class="btn" onclick="seedCharacters(10)">🌱 Засеять 10</button>
+                </div>
+                <div class="character-item">
+                    <span>Добавить персонажа</span>
+                    <button class="btn btn-secondary" onclick="addCharacter()">➕ Добавить 1</button>
+                </div>
+                <div class="character-item">
+                    <span>Экспорт/Импорт</span>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="exportData()">📤 Экспорт</button>
+                        <button class="btn btn-secondary" onclick="importData()">📥 Импорт</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-secondary" onclick="showScreen('landing')">← Назад</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp integration
+        let tg = window.Telegram.WebApp;
+        
+        // Initialize Telegram WebApp
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            
+            // Handle theme changes
+            tg.onEvent('themeChanged', function() {
+                updateTheme();
+            });
+            
+            // Auto-login if user data available
+            const user = tg.initDataUnsafe?.user;
+            if (user) {
+                autoLogin(user);
+            }
+        }
+
+        // App state
+        let currentScreen = 'ageGate';
+        let currentFilter = 'all';
+        let currentProfileIndex = 0;
+        let profiles = [];
+        let userProfile = null;
+        let matches = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            checkAgeGate();
+            updateTheme();
+        });
+
+        function checkAgeGate() {
+            const ageConfirmed = localStorage.getItem('ageConfirmed');
+            if (ageConfirmed === 'true') {
+                showScreen('landing');
+            } else {
+                showScreen('ageGate');
+            }
+        }
+
+        function confirmAge() {
+            localStorage.setItem('ageConfirmed', 'true');
+            showScreen('landing');
+        }
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show target screen
+            document.getElementById(screenId).classList.add('active');
+            currentScreen = screenId;
+            
+            // Load screen-specific data
+            if (screenId === 'swipe') {
+                loadProfiles();
+                showCurrentProfile();
+            } else if (screenId === 'chat') {
+                loadChatMessages();
+            } else if (screenId === 'profile') {
+                loadUserProfile();
+            } else if (screenId === 'characters') {
+                updateCharacterCount();
+            }
+        }
+
+        function updateTheme() {
+            if (tg) {
+                const theme = tg.colorScheme;
+                if (theme === 'dark') {
+                    document.body.style.background = '#0a0a0a';
+                } else {
+                    document.body.style.background = '#ffffff';
+                    document.body.style.color = '#000000';
+                }
+            }
+        }
+
+        function autoLogin(user) {
+            userProfile = {
+                name: user.first_name + (user.last_name ? ' ' + user.last_name : ''),
+                age: 25,
+                gender: 'male',
+                field: 'Программирование',
+                slogan: 'Люблю науку и технологии!',
+                photo: null
+            };
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+        }
+
+        function loadData() {
+            const savedProfiles = localStorage.getItem('profiles');
+            if (savedProfiles) {
+                profiles = JSON.parse(savedProfiles);
+            }
+            
+            const savedUserProfile = localStorage.getItem('userProfile');
+            if (savedUserProfile) {
+                userProfile = JSON.parse(savedUserProfile);
+            }
+            
+            const savedMatches = localStorage.getItem('matches');
+            if (savedMatches) {
+                matches = JSON.parse(savedMatches);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('profiles', JSON.stringify(profiles));
+            localStorage.setItem('userProfile', JSON.stringify(userProfile));
+            localStorage.setItem('matches', JSON.stringify(matches));
+        }
+
+        function startDemo() {
+            if (profiles.length === 0) {
+                seedCharacters(10);
+            }
+            showScreen('swipe');
+        }
+
+        function loadProfiles() {
+            updateCharacterCount();
+        }
+
+        function showCurrentProfile() {
+            const filteredProfiles = getFilteredProfiles();
+            if (filteredProfiles.length === 0) {
+                document.getElementById('profileCard').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <h3>Нет профилей для показа</h3>
+                        <p>Используйте панель персонажей для добавления профилей</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const profile = filteredProfiles[currentProfileIndex];
+            const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            
+            document.getElementById('profileCard').innerHTML = `
+                <div class="profile-photo">
+                    ${profile.photo ? `<img src="${profile.photo}" alt="${profile.name}">` : initials}
+                </div>
+                <div class="profile-name">${profile.name}</div>
+                <div class="profile-age">${profile.age} лет</div>
+                <div class="profile-field">${profile.field}</div>
+                <div class="profile-slogan">${profile.slogan}</div>
+            `;
+        }
+
+        function getFilteredProfiles() {
+            if (currentFilter === 'all') {
+                return profiles;
+            }
+            return profiles.filter(p => p.gender === currentFilter);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            currentProfileIndex = 0;
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            showCurrentProfile();
+        }
+
+        function swipeProfile(action) {
+            const filteredProfiles = getFilteredProfiles();
+            if (filteredProfiles.length === 0) return;
+            
+            const profile = filteredProfiles[currentProfileIndex];
+            
+            if (action === 'like' || action === 'super') {
+                // Simulate match
+                if (Math.random() < 0.3) { // 30% chance of match
+                    matches.push(profile);
+                    saveData();
+                    showMatchOverlay();
+                    return;
+                }
+            }
+            
+            // Move to next profile
+            currentProfileIndex++;
+            if (currentProfileIndex >= filteredProfiles.length) {
+                currentProfileIndex = 0;
+            }
+            
+            showCurrentProfile();
+        }
+
+        function showMatchOverlay() {
+            document.getElementById('matchOverlay').style.display = 'flex';
+        }
+
+        function closeMatch() {
+            document.getElementById('matchOverlay').style.display = 'none';
+        }
+
+        function openChat() {
+            closeMatch();
+            showScreen('chat');
+        }
+
+        function loadChatMessages() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+            
+            // Add some demo messages
+            const messages = [
+                { text: 'Привет! Как дела?', sent: false },
+                { text: 'Привет! Всё отлично, спасибо! А у тебя?', sent: true },
+                { text: 'Тоже хорошо! Видел, что ты занимаешься физикой?', sent: false },
+                { text: 'Да, изучаю квантовую механику. Очень интересно!', sent: true },
+                { text: 'Круто! А я программирую. Может, обсудим что-то интересное?', sent: false }
+            ];
+            
+            messages.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${msg.sent ? 'sent' : 'received'}`;
+                messageDiv.textContent = msg.text;
+                chatMessages.appendChild(messageDiv);
+            });
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message sent';
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            
+            input.value = '';
+            
+            // Auto-reply after 2 seconds
+            setTimeout(() => {
+                const replies = [
+                    'Интересно! Расскажи подробнее',
+                    'Согласен с тобой',
+                    'А что думаешь об этом?',
+                    'Да, это действительно важно',
+                    'Мне тоже это нравится!'
+                ];
+                const reply = replies[Math.floor(Math.random() * replies.length)];
+                
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'message received';
+                replyDiv.textContent = reply;
+                chatMessages.appendChild(replyDiv);
+            }, 2000);
+        }
+
+        function loadUserProfile() {
+            if (userProfile) {
+                document.getElementById('profileName').value = userProfile.name || '';
+                document.getElementById('profileAge').value = userProfile.age || '';
+                document.getElementById('profileGender').value = userProfile.gender || 'male';
+                document.getElementById('profileField').value = userProfile.field || '';
+                document.getElementById('profileSlogan').value = userProfile.slogan || '';
+            }
+        }
+
+        function saveProfile() {
+            userProfile = {
+                name: document.getElementById('profileName').value,
+                age: parseInt(document.getElementById('profileAge').value),
+                gender: document.getElementById('profileGender').value,
+                field: document.getElementById('profileField').value,
+                slogan: document.getElementById('profileSlogan').value,
+                photo: userProfile?.photo || null
+            };
+            
+            saveData();
+            alert('Профиль сохранён!');
+        }
+
+        function handlePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    userProfile.photo = e.target.result;
+                    saveData();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updateCharacterCount() {
+            document.getElementById('charCount').textContent = profiles.length;
+        }
+
+        function seedCharacters(count) {
+            const fields = ['Физика', 'Химия', 'Биология', 'Математика', 'Программирование', 'Медицина', 'Психология', 'Геология', 'Астрономия', 'Инженерия'];
+            const slogans = [
+                'Ищу единомышленника для научных дискуссий',
+                'Люблю эксперименты и открытия',
+                'Наука - это моя страсть',
+                'Ищу того, кто разделяет мои интересы',
+                'Вместе мы можем изменить мир',
+                'Наука без границ',
+                'Ищу партнёра для исследований',
+                'Люблю решать сложные задачи',
+                'Наука - это искусство',
+                'Ищу того, кто понимает красоту формул'
+            ];
+            
+            for (let i = 0; i < count; i++) {
+                const gender = Math.random() < 0.5 ? 'male' : 'female';
+                const names = gender === 'male' 
+                    ? ['Алексей', 'Дмитрий', 'Максим', 'Андрей', 'Сергей', 'Иван', 'Николай', 'Владимир', 'Александр', 'Михаил']
+                    : ['Анна', 'Мария', 'Елена', 'Ольга', 'Татьяна', 'Наталья', 'Ирина', 'Светлана', 'Юлия', 'Екатерина'];
+                
+                const profile = {
+                    name: names[Math.floor(Math.random() * names.length)] + ' ' + (Math.random() < 0.5 ? 'Иванов' : 'Петров'),
+                    age: 20 + Math.floor(Math.random() * 20),
+                    gender: gender,
+                    field: fields[Math.floor(Math.random() * fields.length)],
+                    slogan: slogans[Math.floor(Math.random() * slogans.length)],
+                    photo: null
+                };
+                
+                profiles.push(profile);
+            }
+            
+            saveData();
+            updateCharacterCount();
+            alert(`Добавлено ${count} персонажей!`);
+        }
+
+        function addCharacter() {
+            seedCharacters(1);
+        }
+
+        function exportData() {
+            const data = {
+                profiles: profiles,
+                userProfile: userProfile,
+                matches: matches
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'science-dating-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        try {
+                            const data = JSON.parse(e.target.result);
+                            if (data.profiles) profiles = data.profiles;
+                            if (data.userProfile) userProfile = data.userProfile;
+                            if (data.matches) matches = data.matches;
+                            
+                            saveData();
+                            updateCharacterCount();
+                            alert('Данные импортированы!');
+                        } catch (error) {
+                            alert('Ошибка при импорте данных');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+            input.click();
+        }
+
+        function resetDemo() {
+            if (confirm('Вы уверены, что хотите сбросить все демо-данные?')) {
+                localStorage.clear();
+                profiles = [];
+                userProfile = null;
+                matches = [];
+                currentProfileIndex = 0;
+                showScreen('landing');
+                alert('Демо-данные сброшены!');
+            }
+        }
+
+        // Handle Enter key in chat
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && currentScreen === 'chat') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

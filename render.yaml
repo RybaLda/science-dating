@@ -1,0 +1,16 @@
+services:
+  - type: static
+    name: science-dating-web
+    staticPublishPath: web
+  - type: web
+    name: science-dating-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn bot.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: WEBAPP_URL
+        value: https://science-dating-web.onrender.com
